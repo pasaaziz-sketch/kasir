@@ -1,0 +1,9 @@
+{
+  "indexes": [
+    {"collectionGroup": "transaksi", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "kasirId", "order": "ASCENDING"}, {"fieldPath": "waktu", "order": "DESCENDING"}]},
+    {"collectionGroup": "pengeluaran", "queryScope": "COLLECTION", "fields": [
+      {"fieldPath": "olehId", "order": "ASCENDING"}, {"fieldPath": "waktu", "order": "DESCENDING"}]}
+  ],
+  "fieldOverrides": []
+}

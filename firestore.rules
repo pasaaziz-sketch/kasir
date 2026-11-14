@@ -1,0 +1,66 @@
+rules_version = '2';
+// Aturan keamanan Kasir & Stok.
+// Peran (admin / kasir) dibaca dari dokumen pengguna/{uid}. Aturan ini dijalankan di server Google,
+// jadi tetap berlaku walaupun seseorang mengutak-atik kode di browser.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function userPath() { return /databases/$(database)/documents/pengguna/$(request.auth.uid); }
+    function profile() { return get(userPath()).data; }
+    function isUser() { return signedIn() && exists(userPath()) && profile().get('aktif', true) != false; }
+    function isAdmin() { return isUser() && profile().get('peran', '') == 'admin'; }
+    function setupPath() { return /databases/$(database)/documents/pengaturan/setup; }
+
+    // Pengaturan toko: nama toko tampil di layar login, jadi boleh dibaca siapa saja.
+    match /pengaturan/toko {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    // Penanda bahwa admin pertama sudah dibuat. Hanya bisa dibuat sekali.
+    match /pengaturan/setup {
+      allow read: if true;
+      allow create: if signedIn() && !exists(setupPath())
+                    && request.resource.data.admin == request.auth.uid
+                    && getAfter(userPath()).data.peran == 'admin';
+      allow update, delete: if false;
+    }
+
+    match /pengguna/{userId} {
+      allow read: if isUser() || (signedIn() && request.auth.uid == userId);
+      // Admin pertama: hanya selama setup belum ada, bersamaan dengan membuat dokumen setup.
+      allow create: if isAdmin()
+                    || (signedIn() && request.auth.uid == userId
+                        && !exists(setupPath()) && existsAfter(setupPath())
+                        && request.resource.data.peran == 'admin');
+      allow update, delete: if isAdmin();
+    }
+
+    match /produk/{id} {
+      allow read: if isUser();
+      allow create, delete: if isAdmin();
+      // Kasir hanya boleh mengubah jumlah stok (saat menjual / belanja stok).
+      allow update: if isAdmin()
+                    || (isUser() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stok']));
+    }
+
+    match /transaksi/{id} {
+      allow read: if isAdmin() || (isUser() && resource.data.kasirId == request.auth.uid);
+      allow create: if isAdmin() || (isUser() && request.resource.data.kasirId == request.auth.uid);
+      allow update, delete: if isAdmin();   // pembatalan transaksi hanya oleh admin
+    }
+
+    match /pengeluaran/{id} {
+      allow read: if isAdmin() || (isUser() && resource.data.olehId == request.auth.uid);
+      allow create: if isAdmin() || (isUser() && request.resource.data.olehId == request.auth.uid);
+      allow update: if isAdmin() || (isUser() && resource.data.olehId == request.auth.uid
+                                     && request.resource.data.olehId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Selain yang di atas: tertutup.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
