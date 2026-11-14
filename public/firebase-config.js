@@ -1,11 +1,8 @@
-// GANTI isi di bawah dengan konfigurasi proyek Firebase Anda.
-// Ambil dari: Firebase Console > Project settings (ikon gerigi) > General > Your apps > Web app > SDK setup and configuration > Config.
-// Nilai ini memang dipakai di browser dan aman dicantumkan; keamanan data dijaga oleh firestore.rules.
 export const firebaseConfig = {
-  apiKey: "GANTI_API_KEY",
-  authDomain: "ISI_PROJECT_ID.firebaseapp.com",
-  projectId: "ISI_PROJECT_ID",
-  storageBucket: "ISI_PROJECT_ID.appspot.com",
-  messagingSenderId: "ISI_SENDER_ID",
-  appId: "ISI_APP_ID"
+  apiKey: "AIzaSyAioZeM0TaIYvG2OSzvBGwP9W6-gTZ6TAY",
+  authDomain: "kasir-kampung-jembar.firebaseapp.com",
+  projectId: "kasir-kampung-jembar",
+  storageBucket: "kasir-kampung-jembar.firebasestorage.app",
+  messagingSenderId: "616733691985",
+  appId: "1:616733691985:web:a7da1cc5e25dfe4757a870"
 };
